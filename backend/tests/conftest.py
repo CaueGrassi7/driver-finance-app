@@ -201,58 +201,11 @@ def user_data_2() -> dict[str, Any]:
     }
 
 
-@pytest_asyncio.fixture
-async def test_user(
-    client: AsyncClient, 
-    user_data: dict[str, Any]
-) -> dict[str, Any]:
-    """
-    Create a test user and return user data with auth token.
-    
-    This fixture:
-    - Registers a new user via the signup endpoint
-    - Logs in to get an auth token
-    - Returns user data including the access token
-    
-    Returns:
-        Dictionary containing user data and access_token
-    """
-    # Register user
-    signup_response = await client.post(
-        "/api/v1/signup",
-        json=user_data,
-    )
-    assert signup_response.status_code == 201
-    
-    # Login to get token
-    login_response = await client.post(
-        "/api/v1/login",
-        data={
-            "username": user_data["email"],
-            "password": user_data["password"],
-        },
-    )
-    assert login_response.status_code == 200
-    token_data = login_response.json()
-    
-    return {
-        **user_data,
-        "access_token": token_data["access_token"],
-    }
-
-
-@pytest.fixture
-def auth_headers(test_user: dict[str, Any]) -> dict[str, str]:
-    """
-    Provide authentication headers for testing protected endpoints.
-    
-    Args:
-        test_user: Test user fixture with access token
-        
-    Returns:
-        Dictionary with Authorization header
-    """
-    return {
-        "Authorization": f"Bearer {test_user['access_token']}"
-    }
+# Add your custom fixtures here as needed
+# Example:
+# @pytest_asyncio.fixture
+# async def test_user(client: AsyncClient, user_data: dict[str, Any]) -> dict[str, Any]:
+#     """Create a test user - implement based on your needs."""
+#     # Your implementation here
+#     pass
 
