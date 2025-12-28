@@ -19,6 +19,16 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "driver_finance_db"
     DATABASE_URL: Optional[PostgresDsn] = None
 
+    # JWT Settings
+    SECRET_KEY: str = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+
+    # First Superuser
+    FIRST_SUPERUSER_EMAIL: str = "admin@example.com"
+    FIRST_SUPERUSER_PASSWORD: str = "changeme123"
+    FIRST_SUPERUSER_FULL_NAME: str = "Admin User"
+
     @field_validator("DATABASE_URL")
     @classmethod
     def assemble_db_connection(cls, v: Optional[str], info: ValidationInfo) -> str:

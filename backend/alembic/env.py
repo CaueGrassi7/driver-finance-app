@@ -8,6 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
 from app.core.config import get_settings
 from app.core.database import Base
+# Import all models here for Alembic auto-detection
+from app.models.user import User  # noqa: F401
 
 config = context.config
 
