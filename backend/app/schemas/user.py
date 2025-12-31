@@ -37,6 +37,7 @@ class UserInDB(UserBase):
     id: int
     hashed_password: str
     created_at: datetime
+    updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -46,6 +47,7 @@ class UserResponse(UserBase):
 
     id: int
     created_at: datetime
+    updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 

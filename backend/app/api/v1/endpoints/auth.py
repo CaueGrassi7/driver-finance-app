@@ -81,15 +81,3 @@ async def login(
         "token_type": "bearer"
     }
 
-
-@router.get("/me", response_model=UserResponse)
-async def get_current_user_profile(
-    current_user: Annotated[User, Depends(get_current_active_user)]
-) -> User:
-    """
-    Get current authenticated user profile.
-    
-    Requires valid JWT token in Authorization header.
-    """
-    return current_user
-

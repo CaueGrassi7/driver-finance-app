@@ -1,11 +1,15 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from sqlalchemy import String, Boolean, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.category import Category
+    from app.models.transaction import Transaction
 
 
 class User(Base):
@@ -21,6 +25,17 @@ class User(Base):
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
+    )
+
+    # Relationships
+    categories: Mapped[list["Category"]] = relationship(
+        "Category", back_populates="user", cascade="all, delete-orphan"
+    )
+    transactions: Mapped[list["Transaction"]] = relationship(
+        "Transaction", back_populates="user", cascade="all, delete-orphan"
     )
 
     def __repr__(self) -> str:
