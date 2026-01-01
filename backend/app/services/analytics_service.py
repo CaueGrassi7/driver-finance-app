@@ -94,7 +94,7 @@ class AnalyticsService:
             target_date: Target date
             
         Returns:
-            Dictionary with daily income, expenses, balance, and transaction count
+            Dictionary with daily income, expenses, balance, fuel expenses and transaction count
         """
         # Get income for the day
         income_result = await db.execute(
@@ -131,6 +131,31 @@ class AnalyticsService:
         total_income = Decimal(str(income_data.total))
         total_expenses = Decimal(str(expense_data.total))
         balance = total_income - total_expenses
+
+        fuel_result = await db.execute(
+            select(
+                func.coalesce(func.sum(Transaction.amount), 0).label("total"),
+                func.count(Transaction.id).label("count")
+            )
+            .where(
+                and_(
+                    Transaction.user_id == user_id,
+                    Transaction.type == TransactionType.EXPENSE,
+                    Transaction.category_id == 1,
+                    cast(Transaction.transaction_date, Date) == target_date
+                )
+            )
+        )
+        fuel_data = fuel_result.one()
+        
+        total_fuel_expenses = Decimal(str(fuel_data.total))
+        fuel_transaction_count = fuel_data.count
+        
+        # Avoid division by zero
+        if fuel_transaction_count > 0:
+            average_fuel_expense = total_fuel_expenses / fuel_transaction_count
+        else:
+            average_fuel_expense = Decimal("0")
         
         return {
             "date": target_date.isoformat(),
@@ -140,6 +165,9 @@ class AnalyticsService:
             "expense_count": expense_data.count,
             "balance": float(balance),
             "total_transactions": income_data.count + expense_data.count,
+            "total_fuel_expenses": float(total_fuel_expenses),
+            "fuel_transaction_count": fuel_transaction_count,
+            "average_fuel_expense": float(average_fuel_expense),
         }
 
     async def get_category_breakdown(

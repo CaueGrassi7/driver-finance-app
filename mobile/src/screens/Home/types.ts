@@ -6,11 +6,20 @@ export interface DailySummary {
   expense_count: number;
   balance: number;
   total_transactions: number;
+  total_fuel_expenses: number;
+  fuel_transaction_count: number;
+  average_fuel_expense: number;
 }
 
-export interface OverallSummary {
-  total_income: number;
-  total_expenses: number;
-  balance: number;
+export interface RecentTransaction {
+  id: number;
+  type: "income" | "expense";
+  amount: number;
+  description: string | null;
+  transaction_date: string;
+  category_id: number | null;
+  category_name?: string | null;
+  category_color?: string | null;
+  category_icon?: string | null;
+  created_at: string;
 }
-

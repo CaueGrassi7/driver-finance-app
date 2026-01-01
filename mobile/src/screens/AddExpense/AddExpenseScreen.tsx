@@ -15,12 +15,12 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { MainScreenProps } from "../../types/navigation";
 import { theme } from "../../theme";
-import { useAddIncome } from "./useAddIncome";
+import { useAddExpense } from "./useAddExpense";
 import { styles } from "./styles";
 
-type Props = MainScreenProps<"AddIncome">;
+type Props = MainScreenProps<"AddExpense">;
 
-export default function AddIncomeScreen({ navigation }: Props) {
+export default function AddExpenseScreen({ navigation }: Props) {
   const {
     // Form states
     amount,
@@ -49,7 +49,7 @@ export default function AddIncomeScreen({ navigation }: Props) {
 
     // Actions
     handleSubmit,
-  } = useAddIncome(() => navigation.goBack());
+  } = useAddExpense(() => navigation.goBack());
 
   return (
     <KeyboardAvoidingView
@@ -59,15 +59,22 @@ export default function AddIncomeScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Nova Receita</Text>
-          <Text style={styles.subtitle}>Registre uma entrada de dinheiro</Text>
+          <Text style={styles.title}>Nova Despesa</Text>
+          <Text style={styles.subtitle}>Registre uma despesa</Text>
         </View>
 
         {/* Amount Card */}
         <View style={styles.card}>
           <Text style={styles.label}>Valor (R$)</Text>
           <View style={styles.amountInputContainer}>
-            <Text style={styles.currencySymbol}>R$</Text>
+            <Text
+              style={[
+                styles.currencySymbol,
+                { color: theme.colors.status.danger },
+              ]}
+            >
+              R$
+            </Text>
             <TextInput
               style={styles.amountInput}
               placeholder="0,00"
@@ -122,7 +129,7 @@ export default function AddIncomeScreen({ navigation }: Props) {
           <Text style={styles.label}>Descrição</Text>
           <TextInput
             style={styles.textArea}
-            placeholder="Ex: Corrida Uber, entrega, bônus..."
+            placeholder="Ex: Combustível, manutenção, alimentação..."
             placeholderTextColor={theme.colors.text.muted}
             value={description}
             onChangeText={setDescription}
@@ -189,7 +196,7 @@ export default function AddIncomeScreen({ navigation }: Props) {
           {isLoading ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={styles.buttonText}>💾 Salvar Receita</Text>
+            <Text style={styles.buttonText}>💾 Salvar Despesa</Text>
           )}
         </TouchableOpacity>
 

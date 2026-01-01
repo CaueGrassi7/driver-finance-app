@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_active_user, get_db
-from app.crud import crud_user
+from app.repositories.user_repository import user_repository
 from app.models.user import User
 from app.schemas.user import UserResponse, UserUpdate
 
@@ -55,14 +55,14 @@ async def update_current_user(
     
     # Check email uniqueness if email is being updated
     if user_update.email and user_update.email != current_user.email:
-        existing_user = await crud_user.get_user_by_email(db, email=user_update.email)
+        existing_user = await user_repository.get_by_email(db, email=user_update.email)
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered"
             )
     
-    updated_user = await crud_user.update_user(db, user_id=current_user.id, user_update=user_update)
+    updated_user = await user_repository.update(db, id=current_user.id, obj_in=user_update)
     if not updated_user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -89,7 +89,7 @@ async def read_user_by_id(
             detail="Not authorized to access other users"
         )
     
-    user = await crud_user.get_user_by_id(db, user_id=user_id)
+    user = await user_repository.get_by_id(db, id=user_id)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

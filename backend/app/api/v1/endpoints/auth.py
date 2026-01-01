@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_current_active_user, get_db
 from app.core.security import create_access_token
-from app.crud import crud_user
+from app.repositories.user_repository import user_repository
 from app.models.user import User
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResponse
@@ -29,7 +29,7 @@ async def signup(
     Returns the created user profile and JWT token.
     """
     # Check if user already exists
-    existing_user = await crud_user.get_user_by_email(db, email=user_create.email)
+    existing_user = await user_repository.get_by_email(db, email=user_create.email)
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -37,7 +37,7 @@ async def signup(
         )
     
     # Create new user
-    user = await crud_user.create_user(db, user_create=user_create)
+    user = await user_repository.create(db, obj_in=user_create)
     return user
 
 
@@ -56,7 +56,7 @@ async def login(
     Works with Swagger UI "Authorize" button.
     """
     # Authenticate user (OAuth2 spec uses 'username', but we treat it as email)
-    user = await crud_user.authenticate(
+    user = await user_repository.authenticate(
         db, email=form_data.username, password=form_data.password
     )
     

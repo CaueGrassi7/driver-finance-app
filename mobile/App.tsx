@@ -14,6 +14,8 @@ import type {
 import ProfileScreen from "./src/screens/ProfileScreen";
 import AddIncomeScreen from "./src/screens/AddIncome";
 import { theme } from "./src/theme";
+import AddExpenseScreen from "./src/screens/AddExpense";
+import ReportsScreen from "./src/screens/Reports";
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const MainStack = createNativeStackNavigator<MainStackParamList>();
@@ -43,6 +45,8 @@ function MainNavigator() {
       <MainStack.Screen name="Home" component={HomeScreen} />
       <MainStack.Screen name="Profile" component={ProfileScreen} />
       <MainStack.Screen name="AddIncome" component={AddIncomeScreen} />
+      <MainStack.Screen name="AddExpense" component={AddExpenseScreen} />
+      <MainStack.Screen name="Reports" component={ReportsScreen} />
     </MainStack.Navigator>
   );
 }

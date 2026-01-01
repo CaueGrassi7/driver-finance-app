@@ -18,7 +18,8 @@ import { useHome } from "./useHome";
 type Props = MainScreenProps<"Home">;
 
 export default function HomeScreen({ navigation }: Props) {
-  const { dailySummary, overallSummary, isLoading, refreshData } = useHome();
+  const { dailySummary, recentTransactions, isLoading, refreshData } =
+    useHome();
 
   const handleLogout = async () => {
     try {
@@ -31,9 +32,42 @@ export default function HomeScreen({ navigation }: Props) {
     }
   };
 
-  const formatCurrency = (value: number | undefined) => {
-    if (value === undefined || value === null) return "R$ 0,00";
-    return `R$ ${value.toFixed(2).replace(".", ",")}`;
+  const formatCurrency = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) return "R$ 0,00";
+    const numValue = typeof value === "string" ? parseFloat(value) : value;
+    if (isNaN(numValue)) return "R$ 0,00";
+    return `R$ ${numValue.toFixed(2).replace(".", ",")}`;
+  };
+
+  const formatDate = (dateString: string) => {
+    // Parse da data sem considerar timezone
+    const [year, month, day] = dateString.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString("pt-BR");
+  };
+
+  const formatTransactionDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return `Hoje às ${date.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`;
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return `Ontem às ${date.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })}`;
+    } else {
+      return date.toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "short",
+      });
+    }
   };
 
   return (
@@ -51,9 +85,7 @@ export default function HomeScreen({ navigation }: Props) {
           <Text style={styles.title}>Rota Financeira</Text>
           <Text style={styles.subtitle}>
             {dailySummary
-              ? `Resumo de ${new Date(dailySummary.date).toLocaleDateString(
-                  "pt-BR"
-                )}`
+              ? `Resumo de ${formatDate(dailySummary.date)}`
               : "Bem-vindo ao seu painel financeiro"}
           </Text>
         </View>
@@ -122,11 +154,11 @@ export default function HomeScreen({ navigation }: Props) {
                 <Text
                   style={[
                     styles.statValue,
-                    (overallSummary?.balance || 0) < 0 &&
+                    (dailySummary?.balance || 0) < 0 &&
                       styles.statValueNegative,
                   ]}
                 >
-                  {formatCurrency(overallSummary?.balance)}
+                  {formatCurrency(dailySummary?.balance || 0)}
                 </Text>
                 <Text style={styles.statLabel}>Balanço Total</Text>
               </View>
@@ -140,13 +172,21 @@ export default function HomeScreen({ navigation }: Props) {
                 <Text
                   style={[
                     styles.statValue,
-                    (dailySummary?.balance || 0) < 0 &&
+                    (dailySummary?.total_fuel_expenses || 0) < 0 &&
                       styles.statValueNegative,
                   ]}
                 >
-                  {formatCurrency(dailySummary?.balance)}
+                  {formatCurrency(dailySummary?.total_fuel_expenses)}
                 </Text>
                 <Text style={styles.statLabel}>Combustível</Text>
+                {dailySummary && dailySummary.fuel_transaction_count > 0 && (
+                  <Text style={styles.statSubLabel}>
+                    {dailySummary.fuel_transaction_count}{" "}
+                    {dailySummary.fuel_transaction_count === 1
+                      ? "abastecimento"
+                      : "abastecimentos"}
+                  </Text>
+                )}
               </View>
             </View>
           </>
@@ -170,7 +210,10 @@ export default function HomeScreen({ navigation }: Props) {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionButtonDanger}>
+          <TouchableOpacity
+            style={styles.actionButtonDanger}
+            onPress={() => navigation.navigate("AddExpense")}
+          >
             <MaterialCommunityIcons
               name="plus-circle"
               size={24}
@@ -181,6 +224,7 @@ export default function HomeScreen({ navigation }: Props) {
 
           <TouchableOpacity
             style={[styles.actionButton, styles.actionButtonSecondary]}
+            onPress={() => navigation.navigate("Reports")}
           >
             <MaterialCommunityIcons
               name="file-chart"
@@ -220,17 +264,72 @@ export default function HomeScreen({ navigation }: Props) {
         {/* Recent Activity */}
         <View style={styles.activityContainer}>
           <Text style={styles.sectionTitle}>Atividade Recente</Text>
-          <View style={styles.emptyState}>
-            <MaterialCommunityIcons
-              name="inbox"
-              size={48}
-              color={theme.colors.text.disabled}
-            />
-            <Text style={styles.emptyStateText}>Nenhuma atividade ainda</Text>
-            <Text style={styles.emptyStateSubtext}>
-              Adicione sua primeira despesa para começar
-            </Text>
-          </View>
+          {recentTransactions.length === 0 ? (
+            <View style={styles.emptyState}>
+              <MaterialCommunityIcons
+                name="inbox"
+                size={48}
+                color={theme.colors.text.disabled}
+              />
+              <Text style={styles.emptyStateText}>Nenhuma atividade ainda</Text>
+              <Text style={styles.emptyStateSubtext}>
+                Adicione sua primeira despesa ou receita para começar
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.transactionsList}>
+              {recentTransactions.map((transaction) => (
+                <View key={transaction.id} style={styles.transactionItem}>
+                  <View style={styles.transactionLeft}>
+                    <View
+                      style={[
+                        styles.transactionIcon,
+                        {
+                          backgroundColor:
+                            transaction.type === "income"
+                              ? theme.colors.status.successBg
+                              : theme.colors.status.errorBg,
+                        },
+                      ]}
+                    >
+                      <MaterialCommunityIcons
+                        name={
+                          transaction.type === "income"
+                            ? "arrow-down"
+                            : "arrow-up"
+                        }
+                        size={20}
+                        color={
+                          transaction.type === "income"
+                            ? theme.colors.status.success
+                            : theme.colors.status.danger
+                        }
+                      />
+                    </View>
+                    <View style={styles.transactionDetails}>
+                      <Text style={styles.transactionDescription}>
+                        {transaction.description || "Sem descrição"}
+                      </Text>
+                      <Text style={styles.transactionDate}>
+                        {formatTransactionDate(transaction.transaction_date)}
+                      </Text>
+                    </View>
+                  </View>
+                  <Text
+                    style={[
+                      styles.transactionAmount,
+                      transaction.type === "income"
+                        ? styles.transactionAmountIncome
+                        : styles.transactionAmountExpense,
+                    ]}
+                  >
+                    {transaction.type === "income" ? "+ " : "- "}
+                    {formatCurrency(transaction.amount)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -239,10 +338,10 @@ export default function HomeScreen({ navigation }: Props) {
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <MaterialCommunityIcons
             name="logout"
-            size={20}
-            color={theme.colors.action.primaryText}
+            size={18}
+            color={theme.colors.status.danger}
           />
-          <Text style={styles.logoutButtonText}>Sair</Text>
+          <Text style={styles.logoutButtonText}>Sair da Conta</Text>
         </TouchableOpacity>
       </View>
     </View>

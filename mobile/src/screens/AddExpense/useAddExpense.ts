@@ -3,7 +3,7 @@ import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api";
 import { Category } from "./types";
 
-interface UseAddIncomeReturn {
+interface UseAddExpenseReturn {
   // Form states
   amount: string;
   setAmount: (value: string) => void;
@@ -34,7 +34,7 @@ interface UseAddIncomeReturn {
   fetchCategories: () => Promise<void>;
 }
 
-export const useAddIncome = (onSuccess?: () => void): UseAddIncomeReturn => {
+export const useAddExpense = (onSuccess?: () => void): UseAddExpenseReturn => {
   // Form states
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
@@ -70,7 +70,7 @@ export const useAddIncome = (onSuccess?: () => void): UseAddIncomeReturn => {
         return;
       }
 
-      const url = `${API_BASE_URL}${API_ENDPOINTS.CATEGORIES}?type=income`;
+      const url = `${API_BASE_URL}${API_ENDPOINTS.CATEGORIES}?type=expense`;
       const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -121,12 +121,16 @@ export const useAddIncome = (onSuccess?: () => void): UseAddIncomeReturn => {
       }
 
       const payload = {
-        type: "income",
+        type: "expense",
         amount: Number(value.toFixed(2)),
         description: description.trim() || null,
         transaction_date: date.toISOString(),
         category_id: selectedCategory?.id || null,
       };
+
+      console.log("=== CREATING EXPENSE ===");
+      console.log("Payload:", JSON.stringify(payload, null, 2));
+      console.log("URL:", `${API_BASE_URL}${API_ENDPOINTS.TRANSACTIONS}`);
 
       const response = await fetch(
         `${API_BASE_URL}${API_ENDPOINTS.TRANSACTIONS}`,
@@ -140,6 +144,8 @@ export const useAddIncome = (onSuccess?: () => void): UseAddIncomeReturn => {
         }
       );
 
+      console.log("Response status:", response.status);
+
       if (response.status === 401) {
         // Token expirado ou inválido - remove o token
         console.log("Session expired while creating transaction");
@@ -149,12 +155,16 @@ export const useAddIncome = (onSuccess?: () => void): UseAddIncomeReturn => {
 
       if (!response.ok) {
         const detail = await response.text();
+        console.error("Error creating expense:", detail);
         throw new Error(
-          detail || `Erro ao salvar receita (status ${response.status})`
+          detail || `Erro ao salvar despesa (status ${response.status})`
         );
       }
 
-      setSuccessMessage("Receita adicionada com sucesso!");
+      const result = await response.json();
+      console.log("Expense created successfully:", result);
+      
+      setSuccessMessage("Despesa adicionada com sucesso!");
       setAmount("");
       setDescription("");
       setSelectedCategory(null);

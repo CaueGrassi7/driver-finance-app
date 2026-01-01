@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.database import get_db
-from app.crud import crud_user
+from app.repositories.user_repository import user_repository
 from app.models.user import User
 from app.schemas.token import TokenPayload
 
@@ -52,7 +52,7 @@ async def get_current_user(
     except ValueError:
         raise credentials_exception
     
-    user = await crud_user.get_user_by_id(db, user_id=token_data.sub)
+    user = await user_repository.get_by_id(db, id=token_data.sub)
     if user is None:
         raise credentials_exception
     

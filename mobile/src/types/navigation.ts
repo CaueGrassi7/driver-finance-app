@@ -16,8 +16,8 @@ export type MainStackParamList = {
   // Adicione mais rotas aqui no futuro, por exemplo:
   Profile: undefined;
   AddIncome: undefined;
-  // Expenses: undefined;
-  // Reports: undefined;
+  AddExpense: undefined;
+  Reports: undefined;
 };
 
 /**
