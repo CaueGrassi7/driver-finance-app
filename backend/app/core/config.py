@@ -12,22 +12,27 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
-    POSTGRES_SERVER: str = "db"  # Docker service name
-    POSTGRES_PORT: int = 5432  # Internal Docker port (always 5432 inside Docker network)
-    POSTGRES_DB: str = "driver_finance_db"
+    # Database Configuration (Required - no defaults for security)
+    POSTGRES_USER: str = Field(..., description="Database user")
+    POSTGRES_PASSWORD: str = Field(..., min_length=8, description="Database password")
+    POSTGRES_SERVER: str = Field(default="db", description="Database server")
+    POSTGRES_PORT: int = Field(default=5432, description="Database port")
+    POSTGRES_DB: str = Field(..., description="Database name")
     DATABASE_URL: Optional[PostgresDsn] = None
 
-    # JWT Settings
-    SECRET_KEY: str = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    # JWT Settings (Required - no defaults for security)
+    SECRET_KEY: str = Field(..., min_length=32, description="JWT secret key for token signing")
+    ALGORITHM: str = Field(default="HS256", description="JWT algorithm")
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=60, description="Token expiration in minutes")
 
-    # First Superuser
-    FIRST_SUPERUSER_EMAIL: str = "admin@example.com"
-    FIRST_SUPERUSER_PASSWORD: str = "changeme123"
-    FIRST_SUPERUSER_FULL_NAME: str = "Admin User"
+    # First Superuser (Required - no defaults for security)
+    FIRST_SUPERUSER_EMAIL: str = Field(..., description="First superuser email")
+    FIRST_SUPERUSER_PASSWORD: str = Field(..., min_length=12, description="First superuser password")
+    FIRST_SUPERUSER_FULL_NAME: str = Field(default="Admin User", description="First superuser full name")
+
+    # Environment & CORS
+    ENVIRONMENT: str = Field(default="production", description="Environment: development or production")
+    FRONTEND_URL: str = Field(default="*", description="Frontend URL for CORS configuration")
 
     @field_validator("DATABASE_URL")
     @classmethod

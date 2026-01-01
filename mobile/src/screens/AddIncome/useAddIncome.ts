@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api";
+import { logger } from "../../utils/logger";
 import { Category } from "./types";
 
 interface UseAddIncomeReturn {
@@ -79,7 +80,7 @@ export const useAddIncome = (onSuccess?: () => void): UseAddIncomeReturn => {
 
       if (response.status === 401) {
         // Token expirado ou inválido - remove o token
-        console.log("Session expired while fetching categories");
+        logger.log("Session expired while fetching categories");
         await SecureStore.deleteItemAsync("user_token");
         setCategories([]);
         return;
@@ -91,11 +92,11 @@ export const useAddIncome = (onSuccess?: () => void): UseAddIncomeReturn => {
       } else {
         // If unauthorized or any error, categories will remain empty
         // User can still create transaction without category
-        console.error("Failed to fetch categories:", response.status);
+        logger.error("Failed to fetch categories:", response.status);
         setCategories([]);
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      logger.error("Error fetching categories:", error);
       setCategories([]);
     } finally {
       setLoadingCategories(false);
@@ -142,7 +143,7 @@ export const useAddIncome = (onSuccess?: () => void): UseAddIncomeReturn => {
 
       if (response.status === 401) {
         // Token expirado ou inválido - remove o token
-        console.log("Session expired while creating transaction");
+        logger.log("Session expired while creating transaction");
         await SecureStore.deleteItemAsync("user_token");
         throw new Error("Sessão expirada. Faça login novamente.");
       }

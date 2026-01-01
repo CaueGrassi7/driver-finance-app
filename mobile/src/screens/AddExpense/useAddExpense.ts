@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api";
+import { logger } from "../../utils/logger";
 import { Category } from "./types";
 
 interface UseAddExpenseReturn {
@@ -79,7 +80,7 @@ export const useAddExpense = (onSuccess?: () => void): UseAddExpenseReturn => {
 
       if (response.status === 401) {
         // Token expirado ou inválido - remove o token
-        console.log("Session expired while fetching categories");
+        logger.log("Session expired while fetching categories");
         await SecureStore.deleteItemAsync("user_token");
         setCategories([]);
         return;
@@ -91,11 +92,11 @@ export const useAddExpense = (onSuccess?: () => void): UseAddExpenseReturn => {
       } else {
         // If unauthorized or any error, categories will remain empty
         // User can still create transaction without category
-        console.error("Failed to fetch categories:", response.status);
+        logger.error("Failed to fetch categories:", response.status);
         setCategories([]);
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      logger.error("Error fetching categories:", error);
       setCategories([]);
     } finally {
       setLoadingCategories(false);
@@ -128,9 +129,9 @@ export const useAddExpense = (onSuccess?: () => void): UseAddExpenseReturn => {
         category_id: selectedCategory?.id || null,
       };
 
-      console.log("=== CREATING EXPENSE ===");
-      console.log("Payload:", JSON.stringify(payload, null, 2));
-      console.log("URL:", `${API_BASE_URL}${API_ENDPOINTS.TRANSACTIONS}`);
+      logger.log("=== CREATING EXPENSE ===");
+      logger.log("Payload:", JSON.stringify(payload, null, 2));
+      logger.log("URL:", `${API_BASE_URL}${API_ENDPOINTS.TRANSACTIONS}`);
 
       const response = await fetch(
         `${API_BASE_URL}${API_ENDPOINTS.TRANSACTIONS}`,
@@ -144,25 +145,25 @@ export const useAddExpense = (onSuccess?: () => void): UseAddExpenseReturn => {
         }
       );
 
-      console.log("Response status:", response.status);
+      logger.log("Response status:", response.status);
 
       if (response.status === 401) {
         // Token expirado ou inválido - remove o token
-        console.log("Session expired while creating transaction");
+        logger.log("Session expired while creating transaction");
         await SecureStore.deleteItemAsync("user_token");
         throw new Error("Sessão expirada. Faça login novamente.");
       }
 
       if (!response.ok) {
         const detail = await response.text();
-        console.error("Error creating expense:", detail);
+        logger.error("Error creating expense:", detail);
         throw new Error(
           detail || `Erro ao salvar despesa (status ${response.status})`
         );
       }
 
       const result = await response.json();
-      console.log("Expense created successfully:", result);
+      logger.log("Expense created successfully:", result);
       
       setSuccessMessage("Despesa adicionada com sucesso!");
       setAmount("");

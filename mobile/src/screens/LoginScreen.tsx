@@ -14,6 +14,7 @@ import { API_BASE_URL, API_ENDPOINTS } from "../config/api";
 import { AuthScreenProps } from "../types/navigation";
 import { theme } from "../theme";
 import { BrandLogo } from "../components";
+import { logger } from "../utils/logger";
 
 type Props = AuthScreenProps<"Login">;
 
@@ -72,7 +73,7 @@ export default function LoginScreen({ navigation }: Props) {
       // Save token securely
       await SecureStore.setItemAsync("user_token", data.access_token);
 
-      console.log("Login successful");
+      logger.log("Login successful");
 
       // Navigation will be handled automatically by App.tsx
       // when it detects the token exists
@@ -88,7 +89,7 @@ export default function LoginScreen({ navigation }: Props) {
       } else {
         setErrorMessage("Ocorreu um erro inesperado");
       }
-      console.error("Login error:", error);
+      logger.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }

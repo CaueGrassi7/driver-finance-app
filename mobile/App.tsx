@@ -16,6 +16,7 @@ import AddIncomeScreen from "./src/screens/AddIncome";
 import { theme } from "./src/theme";
 import AddExpenseScreen from "./src/screens/AddExpense";
 import ReportsScreen from "./src/screens/Reports";
+import { logger } from "./src/utils/logger";
 
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
 const MainStack = createNativeStackNavigator<MainStackParamList>();
@@ -78,7 +79,7 @@ export default function App() {
         setIsCheckingAuth(false);
       }
     } catch (error) {
-      console.error("Error checking auth status:", error);
+      logger.error("Error checking auth status:", error);
       setIsAuthenticated(false);
       if (isCheckingAuth) {
         setIsCheckingAuth(false);

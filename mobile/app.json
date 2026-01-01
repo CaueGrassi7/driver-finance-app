@@ -28,6 +28,9 @@
     },
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "extra": {
+      "apiUrl": "https://your-production-api.com"
+    }
   }
 }

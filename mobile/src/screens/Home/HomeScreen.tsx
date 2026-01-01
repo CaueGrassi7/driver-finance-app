@@ -14,6 +14,7 @@ import { theme } from "../../theme";
 import { BrandLogo } from "../../components";
 import { styles } from "./styles";
 import { useHome } from "./useHome";
+import { logger } from "../../utils/logger";
 
 type Props = MainScreenProps<"Home">;
 
@@ -24,11 +25,11 @@ export default function HomeScreen({ navigation }: Props) {
   const handleLogout = async () => {
     try {
       await SecureStore.deleteItemAsync("user_token");
-      console.log("Logged out successfully");
+      logger.log("Logged out successfully");
       // A navegação será tratada automaticamente pelo App.tsx
       // quando o isAuthenticated mudar
     } catch (error) {
-      console.error("Error logging out:", error);
+      logger.error("Error logging out:", error);
     }
   };
 

@@ -17,6 +17,7 @@ import { MainScreenProps } from "../types/navigation";
 import { theme } from "../theme";
 import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL, API_ENDPOINTS } from "../config/api";
+import { logger } from "../utils/logger";
 
 type Props = MainScreenProps<"Profile">;
 
@@ -80,7 +81,7 @@ export default function ProfileScreen({ navigation }: Props) {
       });
 
       if (response.status === 401) {
-        console.log("Session expired while loading profile");
+        logger.log("Session expired while loading profile");
         await SecureStore.deleteItemAsync("user_token");
         throw new Error("Sessão expirada. Faça login novamente.");
       }
@@ -98,7 +99,7 @@ export default function ProfileScreen({ navigation }: Props) {
       } else {
         setError("Erro ao carregar dados do perfil");
       }
-      console.error("Error loading profile:", err);
+      logger.error("Error loading profile:", err);
     } finally {
       setIsLoading(false);
     }

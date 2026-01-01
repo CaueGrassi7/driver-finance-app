@@ -3,6 +3,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api";
 import { DailySummary, RecentTransaction } from "./types";
+import { logger } from "../../utils/logger";
 
 interface UseHomeReturn {
   dailySummary: DailySummary | null;
@@ -20,7 +21,7 @@ export const useHome = (): UseHomeReturn => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDailySummary = async (token: string) => {
+  const fetchDailySummary = useCallback(async (token: string) => {
     const response = await fetch(
       `${API_BASE_URL}${API_ENDPOINTS.ANALYTICS_DAILY}`,
       {
@@ -32,7 +33,7 @@ export const useHome = (): UseHomeReturn => {
 
     if (response.status === 401) {
       // Token expirado ou inválido - remove o token
-      console.log("Session expired, logging out...");
+      logger.log("Session expired, logging out...");
       await SecureStore.deleteItemAsync("user_token");
       setError("Sessão expirada");
       return;
@@ -42,12 +43,12 @@ export const useHome = (): UseHomeReturn => {
       const data = await response.json();
       setDailySummary(data);
     } else {
-      console.error("Failed to fetch daily summary:", response.status);
+      logger.error("Failed to fetch daily summary:", response.status);
       setError("Erro ao carregar dados");
     }
-  };
+  }, []);
 
-  const fetchRecentTransactions = async (token: string) => {
+  const fetchRecentTransactions = useCallback(async (token: string) => {
     const response = await fetch(
       `${API_BASE_URL}${API_ENDPOINTS.TRANSACTIONS}?limit=5`,
       {
@@ -59,7 +60,7 @@ export const useHome = (): UseHomeReturn => {
 
     if (response.status === 401) {
       // Token expirado ou inválido - remove o token
-      console.log("Session expired, logging out...");
+      logger.log("Session expired, logging out...");
       await SecureStore.deleteItemAsync("user_token");
       return;
     }
@@ -68,11 +69,11 @@ export const useHome = (): UseHomeReturn => {
       const data = await response.json();
       setRecentTransactions(data);
     } else {
-      console.error("Failed to fetch recent transactions:", response.status);
+      logger.error("Failed to fetch recent transactions:", response.status);
     }
-  };
+  }, []);
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
@@ -88,18 +89,18 @@ export const useHome = (): UseHomeReturn => {
         fetchRecentTransactions(token),
       ]);
     } catch (err) {
-      console.error("Error fetching data:", err);
+      logger.error("Error fetching data:", err);
       setError("Erro ao carregar dados");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [fetchDailySummary, fetchRecentTransactions]);
 
   // useFocusEffect executa toda vez que a tela entra em foco
   useFocusEffect(
     useCallback(() => {
       refreshData();
-    }, [])
+    }, [refreshData])
   );
 
   return {

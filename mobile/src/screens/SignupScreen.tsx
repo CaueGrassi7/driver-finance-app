@@ -14,6 +14,7 @@ import { API_BASE_URL, API_ENDPOINTS } from "../config/api";
 import { AuthScreenProps } from "../types/navigation";
 import { theme } from "../theme";
 import { BrandLogo } from "../components";
+import { logger } from "../utils/logger";
 
 type Props = AuthScreenProps<"Signup">;
 
@@ -91,7 +92,7 @@ export default function SignupScreen({ navigation }: Props) {
       // Parse successful response
       const data = await response.json();
 
-      console.log("Signup successful:", data);
+      logger.log("Signup successful:", data);
 
       // Show success message
       setSuccessMessage(
@@ -114,7 +115,7 @@ export default function SignupScreen({ navigation }: Props) {
       } else {
         setErrorMessage("Ocorreu um erro inesperado");
       }
-      console.error("Signup error:", error);
+      logger.error("Signup error:", error);
     } finally {
       setIsLoading(false);
     }

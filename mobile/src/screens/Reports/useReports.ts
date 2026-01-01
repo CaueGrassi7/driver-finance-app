@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL, API_ENDPOINTS } from "../../config/api";
+import { logger } from "../../utils/logger";
 import {
   CategoryBreakdown,
   ReportsSummary,
@@ -69,7 +70,7 @@ export const useReports = (): UseReportsReturn => {
     });
 
     if (response.status === 401) {
-      console.log("Session expired, logging out...");
+      logger.log("Session expired, logging out...");
       await SecureStore.deleteItemAsync("user_token");
       setError("Sessão expirada");
       return [];
@@ -78,7 +79,7 @@ export const useReports = (): UseReportsReturn => {
     if (response.ok) {
       return await response.json();
     } else {
-      console.error(`Failed to fetch ${type} breakdown:`, response.status);
+      logger.error(`Failed to fetch ${type} breakdown:`, response.status);
       return [];
     }
   };
@@ -99,7 +100,7 @@ export const useReports = (): UseReportsReturn => {
     });
 
     if (response.status === 401) {
-      console.log("Session expired, logging out...");
+      logger.log("Session expired, logging out...");
       await SecureStore.deleteItemAsync("user_token");
       return [];
     }
@@ -107,7 +108,7 @@ export const useReports = (): UseReportsReturn => {
     if (response.ok) {
       return await response.json();
     } else {
-      console.error("Failed to fetch transactions:", response.status);
+      logger.error("Failed to fetch transactions:", response.status);
       return [];
     }
   };
@@ -263,7 +264,7 @@ export const useReports = (): UseReportsReturn => {
       setMonthlyData(monthly);
       setTrendData(processTrendData(monthly));
     } catch (err) {
-      console.error("Error fetching reports data:", err);
+      logger.error("Error fetching reports data:", err);
       setError("Erro ao carregar dados");
     } finally {
       setIsLoading(false);

@@ -1,8 +1,10 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.api.deps import get_current_active_user, get_db
 from app.core.security import create_access_token
@@ -12,15 +14,20 @@ from app.schemas.token import Token
 from app.schemas.user import UserCreate, UserResponse
 
 router = APIRouter()
+limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit("5/minute")
 async def signup(
+    request: Request,
     user_create: UserCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> User:
     """
     Register a new user.
+    
+    Rate limit: 5 requests per minute per IP address.
     
     - **email**: Valid email address (must be unique)
     - **password**: Password (minimum 8 characters)
@@ -42,12 +49,16 @@ async def signup(
 
 
 @router.post("/login", response_model=Token)
+@limiter.limit("5/minute")
 async def login(
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> dict[str, str]:
     """
     OAuth2 compatible login endpoint.
+    
+    Rate limit: 5 requests per minute per IP address to prevent brute force attacks.
     
     - **username**: User email address (OAuth2 spec requires 'username' field)
     - **password**: User password
