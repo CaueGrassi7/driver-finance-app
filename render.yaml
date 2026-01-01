@@ -29,6 +29,10 @@ services:
         sync: false
       - key: DATABASE_URL
         sync: false
+      - key: FIRST_SUPERUSER_EMAIL
+        sync: false
+      - key: FIRST_SUPERUSER_PASSWORD
+        sync: false
       - key: FRONTEND_URL
         value: http://localhost:8081
       - key: CORS_ORIGINS
